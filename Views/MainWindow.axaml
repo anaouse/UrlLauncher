@@ -1,0 +1,219 @@
+<!-- ./Views/MainWindow.axaml-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:UrlLauncher.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="UrlLauncher.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="URL 启动器"
+        Width="900" Height="650">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <!-- 用 TabControl 管理多个页面 -->
+    <TabControl Margin="10">
+        <!-- 第一个 Tab：主页 -->
+        <TabItem Header="主页">
+            <Grid Margin="20" RowDefinitions="Auto,10,Auto,10,*">
+                <!-- 搜索框 -->
+                <TextBox Grid.Row="2"
+                         Watermark="搜索名称、URL 或分类..."
+                         Text="{Binding SearchText}"
+                         Margin="0,0,0,5"/>
+
+                <!-- 主内容区域 -->
+                <Grid Grid.Row="4" ColumnDefinitions="*,15,350">
+                    
+                    <!-- URL 列表 -->
+                    <Border Grid.Column="0" 
+                            BorderBrush="LightGray" 
+                            BorderThickness="1" 
+                            CornerRadius="5"
+                            Padding="10">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding FilteredItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="LightGray" 
+                                                BorderThickness="0,0,0,1" 
+                                                Padding="10"
+                                                Margin="0,0,0,5">
+                                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                                <!-- 信息区域 -->
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding Name}" 
+                                                               FontWeight="Bold" 
+                                                               FontSize="16"/>
+                                                    <TextBlock Text="{Binding Url}" 
+                                                               Foreground="Gray" 
+                                                               FontSize="12"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Category}" 
+                                                               Foreground="DarkBlue" 
+                                                               FontSize="11"
+                                                               IsVisible="{Binding Category, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                </StackPanel>
+
+                                                <!-- 打开按钮 -->
+                                                <Button Grid.Column="1" 
+                                                        Content="打开" 
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).OpenUrlCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Margin="10,0,5,0"
+                                                        Background="#4CAF50"
+                                                        Foreground="White"
+                                                        Padding="15,5"/>
+
+                                                <!-- 删除按钮 -->
+                                                <Button Grid.Column="2" 
+                                                        Content="删除" 
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).DeleteUrlCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="#F44336"
+                                                        Foreground="White"
+                                                        Padding="15,5"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- 添加新 URL 面板 -->
+                    <Border Grid.Column="2" 
+                            BorderBrush="LightGray" 
+                            BorderThickness="1" 
+                            CornerRadius="5"
+                            Padding="15"
+                            Background="#F5F5F5">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="添加新 URL" 
+                                       FontSize="18" 
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,10"/>
+
+                            <TextBlock Text="名称:"/>
+                            <TextBox Watermark="例如: anaouse"
+                                     Text="{Binding NewName}"/>
+
+                            <TextBlock Text="URL:" Margin="0,5,0,0"/>
+                            <TextBox Watermark="https://..."
+                                     Text="{Binding NewUrl}"/>
+
+                            <TextBlock Text="分类 (可选):" Margin="0,5,0,0"/>
+                            <TextBox Watermark="不填则取第一级域名, x.com/... 则种类为x"
+                                     Text="{Binding NewCategory}"/>
+
+                            <Button Content="添加" 
+                                    Command="{Binding AddUrlCommand}"
+                                    HorizontalAlignment="Stretch"
+                                    Background="#2196F3"
+                                    Foreground="White"
+                                    Padding="0,15"
+                                    Margin="0,15,0,0"/>
+
+                            <TextBlock Text="提示: 点击「打开」按钮会使用 Chrome 浏览器打开链接" 
+                                       FontSize="11" 
+                                       Foreground="Gray"
+                                       TextWrapping="Wrap"
+                                       Margin="0,20,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <!-- 第二个 Tab：设置 -->
+        <TabItem Header="设置">
+            <ScrollViewer>
+                <StackPanel Margin="30" Spacing="15" MaxWidth="600">
+                    <TextBlock Text="浏览器设置" 
+                               FontSize="20" 
+                               FontWeight="Bold"
+                               Margin="0,0,0,10"/>
+
+                    <!-- 浏览器路径设置 -->
+                    <Border BorderBrush="LightGray" 
+                            BorderThickness="1" 
+                            CornerRadius="5"
+                            Padding="20"
+                            Background="#F9F9F9">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="自定义浏览器" 
+                                       FontSize="16" 
+                                       FontWeight="SemiBold"/>
+                            
+                            <TextBlock Text="如果设置了自定义浏览器路径，将优先使用该浏览器打开链接。留空则使用默认 Chrome 浏览器。" 
+                                       TextWrapping="Wrap"
+                                       Foreground="Gray"
+                                       FontSize="12"/>
+
+                            <TextBlock Text="当前使用浏览器:" 
+                                       Margin="0,10,0,0"/>
+
+							<Border BorderBrush="#4CAF50" 
+									BorderThickness="2" 
+									CornerRadius="3"
+									Padding="10"
+									Background="White"
+									Margin="0,5,0,0">
+							
+								<TextBlock Text="{Binding CurrentBrowserDisplay}"
+										TextWrapping="Wrap"
+										Foreground="#2E7D32"/>
+							</Border>
+                            
+							<TextBlock Text="设置新的浏览器路径:"
+									Margin="0,15,0,0"/>
+
+							<TextBox Watermark="输入路径后点击下方保存按钮..."
+									Text="{Binding CustomBrowserPath}"
+									Height="35"/>
+
+							<TextBlock Text="常见浏览器路径示例:" 
+                                       FontSize="11" 
+                                       Foreground="Gray"
+                                       Margin="0,5,0,0"/>
+                            <TextBlock Text="• Chrome: C:\Program Files\Google\Chrome\Application\chrome.exe" 
+                                       FontSize="11" 
+                                       Foreground="Gray"/>
+                            <TextBlock Text="• Firefox: C:\Program Files\Mozilla Firefox\firefox.exe" 
+                                       FontSize="11" 
+                                       Foreground="Gray"/>
+                            <TextBlock Text="• Edge: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" 
+                                       FontSize="11" 
+                                       Foreground="Gray"/>
+
+                            <!-- 按钮组 -->
+                            <Grid ColumnDefinitions="*,10,*,10,*" Margin="0,15,0,0">
+                                <Button Grid.Column="0"
+                                        Content="确认输入并保存" 
+                                        Command="{Binding SaveBrowserConfigCommand}"
+                                        Background="#4CAF50"
+                                        Foreground="White"
+                                        Height="40"
+                                        HorizontalAlignment="Stretch"/>
+                                
+                                <Button Grid.Column="4"
+                                        Content="清除已配置的浏览器路径" 
+                                        Command="{Binding ClearBrowserPathCommand}"
+                                        Background="#F44336"
+                                        Foreground="White"
+                                        Height="40"
+                                        HorizontalAlignment="Stretch"/>
+                            </Grid>
+
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</Window>
+
